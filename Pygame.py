@@ -40,7 +40,7 @@ replay_button_x = SCREEN_WIDTH // 2 - replay_button_width // 2
 replay_button_y = SCREEN_HEIGHT // 2 + 50  #Under the Game Over text
 
 #Player
-player_size = 16
+player_size = 25
 player_pos = [SCREEN_WIDTH//2, SCREEN_HEIGHT-2*player_size]
 player_speed = 0.5
 
@@ -55,6 +55,14 @@ bullet_height = 20
 bullet_width = 10
 bullet_speed = 20
 bullet_list = []
+
+#Load images
+player_image = pygame.image.load('player.gif').convert_alpha()
+enemy_image = pygame.image.load('enemy.png').convert_alpha()
+
+#Scale Images
+player_image = pygame.transform.scale(player_image, (player_size, player_size))
+enemy_image = pygame.transform.scale(enemy_image, (enemy_size, enemy_size))
 
 score = 0
 game_state = "menu" #Possible states: "menu", "playing", "game_over"
@@ -98,7 +106,8 @@ def get_spawn_position(side):
 def draw_enemies(enemy_list):
     for enemy in enemy_list:
         enemy_pos = enemy["pos"]
-        pygame.draw.rect(screen, RED, (enemy_pos[0], enemy_pos[1], enemy_size, enemy_size))
+        screen.blit(enemy_image, enemy_pos)
+        #pygame.draw.rect(screen, RED, (enemy_pos[0], enemy_pos[1], enemy_size, enemy_size))
 
 #Changes the position of an enemy
 def update_enemy_positions(enemy_list, score):
@@ -250,8 +259,8 @@ def game_loop():
         show_score(score)
         
 
-
-        pygame.draw.rect(screen, WHITE, (player_pos[0], player_pos[1], player_size, player_size))
+        screen.blit(player_image, player_pos)
+        #pygame.draw.rect(screen, WHITE, (player_pos[0], player_pos[1], player_size, player_size))
         pygame.display.update()
             
         #Check for collision with player
