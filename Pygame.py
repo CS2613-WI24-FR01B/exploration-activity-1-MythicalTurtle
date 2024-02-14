@@ -13,12 +13,12 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
 #Player
-player_size = 25
+player_size = 16
 player_pos = [SCREEN_WIDTH//2, SCREEN_HEIGHT-2*player_size]
 player_speed = 0.5
 
 #Enemy
-enemy_size = 25
+enemy_size = 15
 enemy_speed = 0.8
 enemy_pos = [random.randint(0, SCREEN_WIDTH-enemy_size), 0]
 enemy_list = [{"pos": enemy_pos, "speed": enemy_speed}]
@@ -37,7 +37,7 @@ def drop_enemies(enemy_list):
     #Adjust spawn threshold based on score
     threshold = max(0.1 - (score // 5) * 0.01, 0.02)
     #Increase max enemies on screen based on score
-    max_enemies = 10 + (score // 10)
+    max_enemies = 10 + (score // 50)
     
     if len(enemy_list) < max_enemies and delay < threshold:
         #Choose spawn side based on score, with new sides introduced at higher scores
@@ -45,7 +45,15 @@ def drop_enemies(enemy_list):
         x_pos, y_pos = get_spawn_position(side)
         #Create enemy with varied speed
         enemy_speed = 0.5 + (score // 5000) * 0.05
-        enemy_list.append({"pos": [x_pos, y_pos], "speed": enemy_speed})
+        enemy_list.append({"pos": [x_pos, y_pos], "speed": enemy_speed, "type": "bullet", "side": side})
+    
+        if score > 150:
+            #spawn bullet enemies from all sides
+            side = random.choice(['top', 'left', 'right', 'bottom'])
+            x_pos, y_pos = get_spawn_position(side)
+            bullet_enemy_speed = 0.5 + (score // 5000) * 0.05 
+            enemy_list.append({"pos": [x_pos, y_pos], "speed": bullet_enemy_speed, "type": "bullet", "side": side})
+
 
 def get_spawn_position(side):
     if side == 'top':
@@ -67,9 +75,24 @@ def draw_enemies(enemy_list):
 
 #Changes the position of an enemy
 def update_enemy_positions(enemy_list, score):
-    for enemy in enemy_list[:]:  #Make a copy to iterate over if modifying the list
-        enemy["pos"][1] += enemy["speed"]  #Use the "speed" key to adjust the y position
-        if enemy["pos"][1] >= SCREEN_HEIGHT:
+    for enemy in enemy_list[:]:
+        #non-bullet enemies simply move downwards, no 'side' key needed
+        if 'type' in enemy and enemy['type'] == "bullet":
+            side = enemy.get("side", "top")  #Defaults to "top" if 'side' key doesn't exist
+            if side == "top":
+                enemy["pos"][1] += enemy["speed"]
+            elif side == "bottom":
+                enemy["pos"][1] -= enemy["speed"]
+            elif side == "left":
+                enemy["pos"][0] += enemy["speed"]
+            elif side == "right":
+                enemy["pos"][0] -= enemy["speed"]
+            # Additional logic for other sides
+        else:
+            enemy["pos"][1] += enemy["speed"]
+
+        #Remove enemy if it goes off-screen
+        if enemy["pos"][1] >= SCREEN_HEIGHT or enemy["pos"][1] < 0 or enemy["pos"][0] >= SCREEN_WIDTH or enemy["pos"][0] < 0:
             enemy_list.remove(enemy)
             score += 1
     return score
